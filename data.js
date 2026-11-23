@@ -157,11 +157,10 @@
       precise: R`<p>\(\mathcal L\) = smallest family of vector fields containing \(g_1,\dots,g_m\) and closed under brackets (\(w_1,w_2\in\mathcal L\Rightarrow[w_1,w_2]\in\mathcal L\)). \(\mathcal L(x)=\{w(x):w\in\mathcal L\}\).</p>`,
       intuition: R`<p>All directions you can generate: the fields themselves plus every iterated bracket.</p>`,
       example: R`<p>Brockett: \(\operatorname{span}\{g_1,g_2,[g_1,g_2]\}(x)=\mathbb R^3\) at every \(x\).</p>` }),
-    c({ id: 'chow-local', title: 'Chow–Rashevskii (local)', type: 'theorem', section: '1.6', source: PAL, reference: 'Thm. 3.10 + proof', page: 12, oralQuestions: ['P7'],
+    c({ id: 'chow-local', title: 'Chow–Rashevskii (local)', type: 'theorem', section: '1.6', source: PAL, reference: 'Thm. 3.10', page: 12, oralQuestions: ['P7'],
       precise: R`<p>For \(\dot x=\sum u_ig_i(x)\) with \(0\in\operatorname{int}U\): if \(\operatorname{span}\mathcal L(x)=\mathbb R^n\) for all \(x\) near \(\bar x\), the system is locally controllable from \(\bar x\) at \(\bar x\) for every \(T>0\) (STLC).</p>`,
       intuition: R`<p>If brackets fill \(\mathbb R^n\), no lower-dimensional surface can trap the trajectories, and symmetry of \(U\) lets you come back.</p>`,
       example: R`<p>Brockett with \(|u_i|\le1\): STLC at every point.</p>`,
-      proofSketch: R`<ol><li>WLOG \(U\) symmetric. Fix \(\varepsilon\). \(k=1\): some constant \(\hat u\) has \(\sum\hat u_ig_i(\bar x)\neq0\); its flow line is a 1-manifold in \(\mathcal R_{\bar x}(\varepsilon)\).</li><li>Induction: a \(k\)-manifold \(\mathcal M_k\subset\mathcal R_{\bar x}(k\varepsilon)\), \(k<n\).</li><li>If every \(\sum u_ig_i\) were tangent to \(\mathcal M_k\), so would all brackets be, so \(\dim\mathcal L(x)\le k<n\). Contradiction. Flow along a transversal field for small times: \(\mathcal M_{k+1}\subset\mathcal R_{\bar x}((k+1)\varepsilon)\).</li><li>\(k=n\): nonempty interior. Run pieces backwards with \(-u\) to see \(\bar x\) is interior; \(\varepsilon\) arbitrary gives every \(T\).</li></ol>`,
       correction: 'The notes do not print the name. The prep notes call this driftless theorem Chow–Rashevskii; the Summary gives the name to Thm. 3.13 (drift, unconstrained). Learn the driftless version.' }),
     c({ id: 'chow-global', title: 'Chow–Rashevskii (global)', type: 'theorem', section: '1.6', source: PAL, reference: 'Thm. 3.12', page: 13, oralQuestions: ['P7'],
       precise: R`<p>If \(0\in\operatorname{int}U\) and \(\operatorname{span}\mathcal L(x)=\mathbb R^n\) for all \(x\in\mathbb R^n\), then \(\bigcup_{T>0}\mathcal R_{\bar x}(T)=\mathbb R^n\). If \(U=\mathbb R^m\), then \(\mathcal R_{\bar x}(T)=\mathbb R^n\) for all \(\bar x\), \(T>0\).</p>`,
@@ -449,7 +448,7 @@
 
   const q = (id, chapter, number, kind, title, nodeIds) => ({ id, chapter, number, kind, title, nodeIds });
   const oralExam = {
-    source: { title: 'Introduction to Mathematical Control Theory — Questions, Part 1', chapters: ['1', '2'], updated: '2025', authors: ['M. Palladino', 'C. Pignotti'], pages: 1 },
+    source: { title: 'Introduction to Mathematical Control Theory — Questions, Part 1', chapters: ['1', '2'], updated: '2026-11-14', authors: ['M. Palladino', 'C. Pignotti'], pages: 1 },
     longFormChoices: { 1: 0, 2: 0 },
     questions: [
       q('P1', '1', 1, 'regular', 'Definition of local controllability.', ['local-ctrl', 'stlc']),
@@ -458,7 +457,7 @@
       q('P4', '1', 4, 'regular', 'Global controllability results for non-autonomous linear control systems.', ['fundamental-matrix', 'gramian', 'bk-test', 'tv-constrained']),
       q('P5', '1', 5, 'long-form', 'Local controllability of nonlinear control systems through linearization at an equilibrium point (with proof).', ['tech-lemma', 'linearization-thm', 'lin-not-necessary']),
       q('P6', '1', 6, 'regular', 'Definition of Lie brackets and their limit characterizations.', ['lie-bracket', 'lie-limits', 'lie-rules', 'brockett']),
-      q('P7', '1', 7, 'long-form', 'Chow–Rashevskii theorem (with proof).', ['lie-algebra', 'chow-local', 'chow-global']),
+      q('P7', '1', 7, 'regular', 'Chow–Rashevskii theorem.', ['lie-algebra', 'chow-local', 'chow-global']),
       q('P8', '1', 8, 'regular', 'Definition of weakly recurrent vector field.', ['weakly-recurrent']),
       q('P9', '1', 9, 'regular', 'Controllability results for nonlinear, control-affine systems with recurrent drift.', ['recurrent-drift', 'drift-unconstrained', 'q2-recipe']),
       q('P10', '1', 10, 'regular', "Krener's theorem.", ['krener', 'krener-not-ctrl']),
