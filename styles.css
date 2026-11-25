@@ -188,3 +188,13 @@
 .hw-accordion-body p,.hw-accordion-body li{margin:0 0 8px}
 .hw-accordion-body ol,.hw-accordion-body ul{padding-left:20px}
 @media(max-width:720px){.standalone-view{padding:18px 14px 48px}.sv-flashcard{padding:18px 16px}.hw-problem-card{padding:14px}}
+
+/* Linked topics between exam cards (derived from graph edges) */
+.sv-links{margin-top:18px;padding-top:14px;border-top:1px dashed var(--line)}
+.sv-links .part-label .subtle{font-weight:400;text-transform:none;letter-spacing:0}
+.sv-link-list{display:flex;flex-wrap:wrap;gap:8px;margin-top:8px}
+.sv-link-chip{display:flex;flex-direction:column;align-items:flex-start;gap:2px;max-width:100%;text-align:left;padding:7px 11px;border:1px solid var(--line);border-radius:10px;background:var(--paper);color:var(--ink);font:inherit;font-size:13px;cursor:pointer}
+.sv-link-chip:hover,.sv-link-chip:focus-visible{border-color:var(--green);background:#f3f8ef}
+.sv-link-chip b{margin-right:2px}
+.sv-link-chip small{color:var(--muted);font-size:11.5px;line-height:1.4}
+.sv-link-dir{color:var(--green);font-weight:700}

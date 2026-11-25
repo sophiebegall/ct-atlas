@@ -88,6 +88,51 @@
   let examIdx = 0;
   let examRevealed = false;
 
+  // ---- Links between exam cards, derived from the concept graph (data.js) ----
+  // Card G<n> is question O<n> in data.js; P<n> is the same in both.
+  // Two cards are linked when a graph edge joins one of their concepts.
+  const atlas = window.RFA_DATA || {};
+  const cardIdOf = q => q.replace(/^O/, 'G');
+  const nodeTitle = new Map((atlas.nodes || []).map(n => [n.id, n.title]));
+  const owners = new Map();
+  (atlas.oralExam?.questions || []).forEach(q => q.nodeIds.forEach(n => {
+    if (!owners.has(n)) owners.set(n, []);
+    owners.get(n).push(cardIdOf(q.id));
+  }));
+  const examLinks = new Map(examCards.map(c => [c.id, new Map()]));
+  (atlas.edges || []).forEach(e => {
+    (owners.get(e.from) || []).forEach(a => (owners.get(e.to) || []).forEach(b => {
+      if (a === b || !examLinks.has(a) || !examLinks.has(b)) return;
+      const why = `${nodeTitle.get(e.from) || e.from} ${e.label} ${nodeTitle.get(e.to) || e.to}`;
+      [[a, b, 'builds on'], [b, a, 'used by']].forEach(([from, to, dir]) => {
+        const m = examLinks.get(from);
+        if (!m.has(to)) m.set(to, { dir, why: [] });
+        if (!m.get(to).why.includes(why)) m.get(to).why.push(why);
+      });
+    }));
+  });
+  const cardById = new Map(examCards.map(c => [c.id, c]));
+  function linksHtml(c) {
+    const m = examLinks.get(c.id);
+    if (!m || !m.size) return '';
+    const order = id => examCards.findIndex(x => x.id === id);
+    const chips = [...m.entries()].sort((x, y) => order(x[0]) - order(y[0])).map(([id, l]) => {
+      const t = cardById.get(id);
+      return `<button class="sv-link-chip" data-ex-goto="${esc(id)}" title="${esc(l.why.join(' · '))}"><span class="sv-link-dir">${l.dir === 'builds on' ? '←' : '→'}</span> <b>${esc(id)}</b> ${esc(t.title)}<small>${esc(l.why.join(' · '))}</small></button>`;
+    }).join('');
+    return `<section class="sv-links" aria-label="Linked topics"><div class="part-label">Linked topics <span class="subtle">(← builds on · → used by)</span></div><div class="sv-link-list">${chips}</div></section>`;
+  }
+  function gotoExamCard(id) {
+    if (examDisplay === 'list') {
+      const el = examSection.querySelector(`details[data-card="${CSS.escape(id)}"]`);
+      if (el) { el.open = true; el.scrollIntoView({ behavior: 'smooth', block: 'start' }); el.querySelector('summary')?.focus(); return; }
+    }
+    examProf = 'all'; examProof = 'all'; examStatus = 'all'; examQuery = '';
+    examIdx = Math.max(0, examOrder.indexOf(id)); examRevealed = false;
+    renderExamView();
+    examSection.scrollIntoView({ block: 'start' });
+  }
+
   function filteredExamCards() {
     const byId = new Map(examCards.map(c => [c.id, c]));
     return examOrder
@@ -202,6 +247,7 @@
                 </div>
               </div>
             ` : ''}
+            ${linksHtml(c)}
           </article>
           <div class="sv-nav">
             <button id="ex-prev" class="secondary" ${examIdx === 0 ? 'disabled' : ''}>← Previous</button>
@@ -227,7 +273,7 @@
               ? `<span class="sv-badge sv-badge-again">↻ Review again</span>`
               : '';
             return `
-              <details class="sv-list-item ${c.withProof ? 'is-proof' : 'is-noproof'}">
+              <details class="sv-list-item ${c.withProof ? 'is-proof' : 'is-noproof'}" data-card="${esc(c.id)}">
                 <summary class="sv-list-summary">
                   <div class="sv-list-top">
                     <div class="sv-badges">
@@ -259,6 +305,7 @@
                       ${c.notes}
                     </section>
                   ` : ''}
+                  ${linksHtml(c)}
                 </div>
               </details>
             `;
@@ -297,6 +344,7 @@
     $('#ex-clear-filters')?.addEventListener('click', () => {
       examProf = 'all'; examProof = 'all'; examStatus = 'all'; examQuery = ''; examIdx = 0; examRevealed = false; renderExamView();
     });
+    $$('[data-ex-goto]').forEach(b => b.addEventListener('click', () => gotoExamCard(b.dataset.exGoto)));
     $('#ex-reveal')?.addEventListener('click', () => { examRevealed = !examRevealed; renderExamView(); });
     $('#ex-prev')?.addEventListener('click', () => { if (examIdx > 0) { examIdx--; examRevealed = false; renderExamView(); } });
     $('#ex-next')?.addEventListener('click', () => { if (examIdx < cards.length - 1) { examIdx++; examRevealed = false; renderExamView(); } });
