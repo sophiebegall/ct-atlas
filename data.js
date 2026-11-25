@@ -465,13 +465,13 @@
       q('O2', '2', 2, 'long-form', 'Pontryagin Maximum Principle: general statement, proof under concavity (or convexity) assumptions.', ['pmp', 'pmp-concave', 'pmp-min']),
       q('O3', '2', 3, 'long-form', 'Theorem with sufficient conditions for optimality.', ['sufficient']),
       q('O4', '2', 4, 'long-form', 'Dynamic Programming Principle.', ['dpp', 'dpp-unique', 'dpp-head']),
-      q('O5', '2', 5, 'long-form', 'Lipschitz continuity of the Hamiltonian.', ['ham-lipschitz']),
-      q('O6', '2', 6, 'long-form', 'The autonomous case: the Hamiltonian is constant along the optimal pairs.', ['ham-constant']),
-      q('O7', '2', 7, 'long-form', 'Problems with final payoff, transversality condition.', ['transversality', 'pest', 'adjoint-rn']),
-      q('O8', '2', 8, 'long-form', 'Bounds on the control: optimality conditions.', ['one-sided', 'bounded-conditions', 'bang-bang', 'bounded-example', 'normal-cone', 'normal-cone-cond']),
+      q('O5', '2', 5, 'regular', 'Lipschitz continuity of the Hamiltonian.', ['ham-lipschitz']),
+      q('O6', '2', 6, 'regular', 'The autonomous case: the Hamiltonian is constant along the optimal pairs.', ['ham-constant']),
+      q('O7', '2', 7, 'regular', 'Problems with final payoff, transversality condition.', ['transversality', 'pest', 'adjoint-rn']),
+      q('O8', '2', 8, 'regular', 'Bounds on the control: optimality conditions.', ['one-sided', 'bounded-conditions', 'bang-bang', 'bounded-example', 'normal-cone', 'normal-cone-cond']),
     ],
   };
-  oralExam.questions.forEach(qq => (qq.note = qq.chapter === '2' ? 'All 8 Pignotti topics are examined with proofs (start file).' : undefined));
+  oralExam.questions.forEach(qq => (qq.note = qq.chapter === '2' ? (qq.kind === 'long-form' ? 'Pignotti: examined with proof (Topics 1–4).' : 'Pignotti: may be asked without proof (Topics 5–8).') : undefined));
 
   const chapters = [
     { id: '1', title: 'Controllability (Palladino)', shortTitle: 'Palladino', partial: false, dateRange: 'Palladino notes (typed)', coverageNote: '', lectureDates: [] },
