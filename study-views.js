@@ -29,7 +29,8 @@
   const shell = $('.app-shell');
   const examSection = $('#exam-flashcards-view');
   const hwSection = $('#homeworks-view');
-  let activeTopView = 'graph'; // 'graph' | 'split' | 'exam' | 'homeworks'
+  const holeSection = $('#rabbit-hole-view');
+  let activeTopView = 'hole'; // 'hole' | 'graph' | 'split' | 'exam' | 'homeworks'
 
   function setTopView(view) {
     activeTopView = view;
@@ -37,6 +38,7 @@
     shell.hidden = !isAtlas;
     examSection.hidden = view !== 'exam';
     hwSection.hidden = view !== 'homeworks';
+    if (holeSection) holeSection.hidden = view !== 'hole';
 
     if (view === 'graph') {
       $('#graph-view')?.click();
@@ -45,6 +47,7 @@
     }
 
     const map = {
+      hole: '#hole-view',
       graph: '#graph-only-view',
       split: '#split-view',
       exam: '#exam-cards-view',
@@ -59,8 +62,10 @@
 
     if (view === 'exam') renderExamView();
     if (view === 'homeworks') renderHomeworksView();
+    if (view === 'hole') window.CT_HOLE?.render();
   }
 
+  $('#hole-view')?.addEventListener('click', () => setTopView('hole'));
   $('#graph-only-view')?.addEventListener('click', () => setTopView('graph'));
   $('#split-view')?.addEventListener('click', () => {
     if (activeTopView !== 'split') setTopView('split');
@@ -68,8 +73,8 @@
   $('#exam-cards-view')?.addEventListener('click', () => setTopView('exam'));
   $('#homeworks-tab-view')?.addEventListener('click', () => setTopView('homeworks'));
 
-  // Start in Graph-only mode so Graph stays separate from the Proof/Flashcards view by default
-  setTopView('graph');
+  // Start in the rabbit hole when it is available.
+  setTopView(holeSection && window.CT_HOLE ? 'hole' : 'graph');
 
   // ==================== EXAM FLASHCARDS (STRICTLY THE 18 ITEMS) ====================
   const EXAM_STORE = 'ct-atlas-exam18-v1';
@@ -87,6 +92,59 @@
   let examOrder = examCards.map(c => c.id);
   let examIdx = 0;
   let examRevealed = false;
+
+  // ---- Links between exam cards, derived from the concept graph (data.js) ----
+  // Card G<n> is question O<n> in data.js; P<n> is the same in both.
+  // Two cards are linked when a graph edge joins one of their concepts.
+  const atlas = window.RFA_DATA || {};
+  const cardIdOf = q => q.replace(/^O/, 'G');
+  const nodeTitle = new Map((atlas.nodes || []).map(n => [n.id, n.title]));
+  const owners = new Map();
+  (atlas.oralExam?.questions || []).forEach(q => q.nodeIds.forEach(n => {
+    if (!owners.has(n)) owners.set(n, []);
+    owners.get(n).push(cardIdOf(q.id));
+  }));
+  const examLinks = new Map(examCards.map(c => [c.id, new Map()]));
+  (atlas.edges || []).forEach(e => {
+    (owners.get(e.from) || []).forEach(a => (owners.get(e.to) || []).forEach(b => {
+      if (a === b || !examLinks.has(a) || !examLinks.has(b)) return;
+      const why = `${nodeTitle.get(e.from) || e.from} ${e.label} ${nodeTitle.get(e.to) || e.to}`;
+      [[a, b, 'builds on'], [b, a, 'used by']].forEach(([from, to, dir]) => {
+        const m = examLinks.get(from);
+        if (!m.has(to)) m.set(to, { dir, why: [] });
+        if (!m.get(to).why.includes(why)) m.get(to).why.push(why);
+      });
+    }));
+  });
+  const cardById = new Map(examCards.map(c => [c.id, c]));
+  function linksHtml(c) {
+    const m = examLinks.get(c.id);
+    if (!m || !m.size) return '';
+    const order = id => examCards.findIndex(x => x.id === id);
+    const chips = [...m.entries()].sort((x, y) => order(x[0]) - order(y[0])).map(([id, l]) => {
+      const t = cardById.get(id);
+      return `<button class="sv-link-chip" data-ex-goto="${esc(id)}" title="${esc(l.why.join(' · '))}"><span class="sv-link-dir">${l.dir === 'builds on' ? '←' : '→'}</span> <b>${esc(id)}</b> ${esc(t.title)}<small>${esc(l.why.join(' · '))}</small></button>`;
+    }).join('');
+    return `<section class="sv-links" aria-label="Linked topics"><div class="part-label">Linked topics <span class="subtle">(← builds on · → used by)</span></div><div class="sv-link-list">${chips}</div></section>`;
+  }
+  function gotoExamCard(id) {
+    if (examDisplay === 'list') {
+      const el = examSection.querySelector(`details[data-card="${CSS.escape(id)}"]`);
+      if (el) { el.open = true; el.scrollIntoView({ behavior: 'smooth', block: 'start' }); el.querySelector('summary')?.focus(); return; }
+    }
+    examProf = 'all'; examProof = 'all'; examStatus = 'all'; examQuery = '';
+    examIdx = Math.max(0, examOrder.indexOf(id)); examRevealed = false;
+    renderExamView();
+    examSection.scrollIntoView({ block: 'start' });
+  }
+
+  // Links from a flashcard into the rabbit hole: zoom out to the parent, or dive into the card's node.
+  function holeLinksHtml(c) {
+    const hole = window.CT_HOLE, home = hole?.home(c.id);
+    if (!home || !hole.has(home)) return '';
+    const up = hole.parentOf(home);
+    return `<div class="sv-hole-links">${up ? `<button class="sv-hole-btn" data-hole="${esc(up)}" data-hole-dir="up" title="See the bigger picture this card sits in">⤒ Zoom out <small>${esc(hole.title(up))}</small></button>` : ''}<button class="sv-hole-btn" data-hole="${esc(home)}" data-hole-dir="down" title="Open this idea in the rabbit hole and explore what is underneath">⤓ Dive in <small>${esc(hole.title(home))}</small></button></div>`;
+  }
 
   function filteredExamCards() {
     const byId = new Map(examCards.map(c => [c.id, c]));
@@ -174,6 +232,7 @@
               <span class="subtle">${examIdx + 1} / ${cards.length}</span>
             </div>
             <h3 class="sv-card-title">${esc(c.title)}</h3>
+            ${holeLinksHtml(c)}
             <div class="sv-prompt">${c.prompt}</div>
             <div class="sv-reveal-bar">
               <button id="ex-reveal" class="primary">${examRevealed ? 'Hide answer' : 'Reveal answer'} <kbd>Space</kbd></button>
@@ -202,6 +261,7 @@
                 </div>
               </div>
             ` : ''}
+            ${linksHtml(c)}
           </article>
           <div class="sv-nav">
             <button id="ex-prev" class="secondary" ${examIdx === 0 ? 'disabled' : ''}>← Previous</button>
@@ -227,7 +287,7 @@
               ? `<span class="sv-badge sv-badge-again">↻ Review again</span>`
               : '';
             return `
-              <details class="sv-list-item ${c.withProof ? 'is-proof' : 'is-noproof'}">
+              <details class="sv-list-item ${c.withProof ? 'is-proof' : 'is-noproof'}" data-card="${esc(c.id)}">
                 <summary class="sv-list-summary">
                   <div class="sv-list-top">
                     <div class="sv-badges">
@@ -243,6 +303,7 @@
                   <div class="sv-list-prompt">${c.prompt}</div>
                 </summary>
                 <div class="sv-list-body">
+                  ${holeLinksHtml(c)}
                   <section class="sv-part">
                     <div class="part-label"><b>01</b> Statement / Definition</div>
                     ${c.statement}
@@ -259,6 +320,7 @@
                       ${c.notes}
                     </section>
                   ` : ''}
+                  ${linksHtml(c)}
                 </div>
               </details>
             `;
@@ -269,6 +331,8 @@
 
     examSection.innerHTML = `<div class="sv-container">${headerHtml}${bodyHtml}</div>`;
     renderMath(examSection);
+    // Concept names in revealed answers link into the rabbit hole (never on the prompt side).
+    examSection.querySelectorAll('.sv-answer, .sv-list-body').forEach(el => window.CT_HOLE?.linkify(el));
 
     // Wire events
     $('#ex-mode-cards')?.addEventListener('click', () => { examDisplay = 'cards'; renderExamView(); });
@@ -297,6 +361,12 @@
     $('#ex-clear-filters')?.addEventListener('click', () => {
       examProf = 'all'; examProof = 'all'; examStatus = 'all'; examQuery = ''; examIdx = 0; examRevealed = false; renderExamView();
     });
+    $$('[data-hole]').forEach(b => b.addEventListener('click', e => {
+      e.preventDefault();
+      setTopView('hole');
+      window.CT_HOLE.open(b.dataset.hole, b.dataset.holeDir);
+    }));
+    $$('[data-ex-goto]').forEach(b => b.addEventListener('click', () => gotoExamCard(b.dataset.exGoto)));
     $('#ex-reveal')?.addEventListener('click', () => { examRevealed = !examRevealed; renderExamView(); });
     $('#ex-prev')?.addEventListener('click', () => { if (examIdx > 0) { examIdx--; examRevealed = false; renderExamView(); } });
     $('#ex-next')?.addEventListener('click', () => { if (examIdx < cards.length - 1) { examIdx++; examRevealed = false; renderExamView(); } });
@@ -334,6 +404,19 @@
       if (examIdx > 0) { examIdx--; examRevealed = false; renderExamView(); }
     }
   }, true);
+
+  examSection.addEventListener('click', e => {
+    const a = e.target.closest('a.rh-link'); if (!a) return;
+    e.preventDefault(); setTopView('hole'); window.CT_HOLE?.open(a.dataset.link, 'down');
+  });
+
+  // Used by the rabbit hole to jump to a flashcard.
+  let toastTimer;
+  window.CT_VIEWS = {
+    setTopView,
+    openExamCard: id => { setTopView('exam'); gotoExamCard(id); },
+    toast: msg => { const t = document.querySelector('#toast'); if (!t) return; clearTimeout(toastTimer); t.textContent = msg; t.hidden = false; toastTimer = setTimeout(() => (t.hidden = true), 4500); },
+  };
 
   // ==================== HOMEWORKS VIEW (ISOLATED, LIST-ONLY) ====================
   let hwProf = 'all';   // 'all' | 'pignotti' | 'palladino'

@@ -8,13 +8,16 @@
   <title>CT Atlas · Part I</title>
   <link rel="icon" href="icon.svg" type="image/svg+xml">
   <link rel="stylesheet" href="vendor/katex/katex.min.css">
-  <link rel="stylesheet" href="styles.css?ct=ae66493eb0d7">
+  <link rel="stylesheet" href="styles.css?ct=links1">
+  <link rel="stylesheet" href="rabbit-hole.css?ct=2">
   <script defer src="vendor/katex/katex.min.js"></script>
   <script defer src="vendor/katex/contrib/auto-render.min.js"></script>
   <script defer src="data.js?ct=28c95e5125f7"></script>
-  <script defer src="study-data.js"></script>
+  <script defer src="study-data.js?ct=2"></script>
   <script defer src="app.js?ct=565992a47746"></script>
-  <script defer src="study-views.js"></script>
+  <script defer src="hole-data.js?ct=2"></script>
+  <script defer src="rabbit-hole.js?ct=2"></script>
+  <script defer src="study-views.js?ct=4"></script>
 </head>
 <body>
   <a class="skip" href="#workspace">Skip to study area</a>
@@ -22,9 +25,10 @@
     <a href="./" class="brand" aria-label="CT Atlas home"><span class="brand-icon">∴</span><strong>CT <span>Atlas</span></strong></a>
     <div class="course-label">CONTROL THEORY · PART I <span>/</span> <b id="course-chapter">CHAPTER 01</b></div>
     <div class="layout-switch" role="group" aria-label="Workspace layout">
-      <button id="graph-only-view" class="active" aria-pressed="true" title="Concept graph explorer (separate from exam proofs)">Graph</button>
-      <button id="split-view" aria-pressed="false" title="Concept graph and concept card side by side">Graph + Notes</button>
-      <button id="exam-cards-view" aria-pressed="false" title="Strictly the 18 official exam flashcards (6 with proof, 12 no proof)">Flashcards (18)</button>
+      <button id="hole-view" class="active" aria-pressed="true" title="Explore: start broad and dive deeper and deeper">Rabbit hole</button>
+      <button id="exam-cards-view" aria-pressed="false" title="Test yourself: the 18 official exam flashcards (6 with proof, 12 no proof)">Flashcards (18)</button>
+      <button id="split-view" aria-pressed="false" title="The old concept graph with cards side by side">Full map</button>
+      <button id="graph-only-view" hidden aria-hidden="true"></button>
       <button id="homeworks-tab-view" aria-pressed="false" title="Homework problems in list view with hints and answers">Homeworks</button>
       <button id="graph-view" hidden aria-hidden="true"></button>
       <button id="cards-view" hidden aria-hidden="true"></button>
@@ -76,6 +80,7 @@
       <div class="study-footer"><span id="progress-text"></span><div class="progress-track"><div id="progress-bar"></div></div><small id="save-status" aria-live="polite">Review status is saved in this browser between visits.</small></div>
     </aside>
   </main>
+  <section id="rabbit-hole-view" class="standalone-view rabbit-hole" aria-label="Rabbit hole: explore the course from broad to deep" hidden></section>
   <section id="exam-flashcards-view" class="standalone-view" aria-label="Exam flashcards (18 official questions)" hidden></section>
   <section id="homeworks-view" class="standalone-view" aria-label="Homework problems list" hidden></section>
   <div id="announcement" class="sr-only" aria-live="polite"></div>
