@@ -17,7 +17,11 @@
   <script defer src="app.js?ct=565992a47746"></script>
   <script defer src="hole-data.js?ct=2"></script>
   <script defer src="rabbit-hole.js?ct=2"></script>
-  <script defer src="study-views.js?ct=4"></script>
+  <script defer src="study-views.js?ct=canvas1"></script>
+  <link rel="stylesheet" href="problem-canvas.css">
+  <script defer src="canvas-data.js"></script>
+  <script defer src="canvas-geometry.js"></script>
+  <script defer src="problem-canvas.js"></script>
 </head>
 <body>
   <a class="skip" href="#workspace">Skip to study area</a>
@@ -28,6 +32,7 @@
       <button id="hole-view" class="active" aria-pressed="true" title="Explore: start broad and dive deeper and deeper">Rabbit hole</button>
       <button id="exam-cards-view" aria-pressed="false" title="Test yourself: the 18 official exam flashcards (6 with proof, 12 no proof)">Flashcards (18)</button>
       <button id="split-view" aria-pressed="false" title="The old concept graph with cards side by side">Full map</button>
+      <button id="problem-canvas-tab" aria-pressed="false">Problem canvas</button>
       <button id="graph-only-view" hidden aria-hidden="true"></button>
       <button id="homeworks-tab-view" aria-pressed="false" title="Homework problems in list view with hints and answers">Homeworks</button>
       <button id="graph-view" hidden aria-hidden="true"></button>
@@ -83,6 +88,7 @@
   <section id="rabbit-hole-view" class="standalone-view rabbit-hole" aria-label="Rabbit hole: explore the course from broad to deep" hidden></section>
   <section id="exam-flashcards-view" class="standalone-view" aria-label="Exam flashcards (18 official questions)" hidden></section>
   <section id="homeworks-view" class="standalone-view" aria-label="Homework problems list" hidden></section>
+  <section id="problem-canvas-view" aria-label="Coursework problem canvas" hidden></section>
   <div id="announcement" class="sr-only" aria-live="polite"></div>
   <div id="toast" class="toast" role="status" hidden></div>
   <dialog id="source-dialog"><div class="dialog-head"><span class="eyebrow">LECTURE REFERENCES</span><button id="close-dialog" class="icon-button" aria-label="Close references">×</button></div><div id="source-content"></div></dialog>

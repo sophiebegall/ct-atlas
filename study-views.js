@@ -39,6 +39,8 @@
     examSection.hidden = view !== 'exam';
     hwSection.hidden = view !== 'homeworks';
     if (holeSection) holeSection.hidden = view !== 'hole';
+    const canvasSection = $('#problem-canvas-view');
+    if (canvasSection) canvasSection.hidden = view !== 'canvas';
 
     if (view === 'graph') {
       $('#graph-view')?.click();
@@ -47,6 +49,7 @@
     }
 
     const map = {
+      canvas: '#problem-canvas-tab',
       hole: '#hole-view',
       graph: '#graph-only-view',
       split: '#split-view',
@@ -63,8 +66,10 @@
     if (view === 'exam') renderExamView();
     if (view === 'homeworks') renderHomeworksView();
     if (view === 'hole') window.CT_HOLE?.render();
+    if (view === 'canvas') window.CT_PROBLEM_CANVAS?.render();
   }
 
+  $('#problem-canvas-tab')?.addEventListener('click', () => setTopView('canvas'));
   $('#hole-view')?.addEventListener('click', () => setTopView('hole'));
   $('#graph-only-view')?.addEventListener('click', () => setTopView('graph'));
   $('#split-view')?.addEventListener('click', () => {
