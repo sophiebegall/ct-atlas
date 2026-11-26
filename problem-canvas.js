@@ -41,11 +41,20 @@
     const card=cards.querySelector(`[data-node="${id}"]`), p=points[id];
     card.style.left=p.x+'px'; card.style.top=p.y+'px';
   }
+  function studyLinks(id) {
+    const links = window.CT_CANVAS_LINKS?.[boardKey]?.[id];
+    if (!links) return '';
+    const button = (kind, target, label, num='') => `<button data-study-kind="${kind}" data-study-id="${esc(target)}" data-study-num="${esc(num)}">${esc(label)} <span aria-hidden="true">↗</span></button>`;
+    const cards = links.cards.map(id => { const c=window.CT_EXAM_CARDS.find(c=>c.id===id); return c ? button('exam',id,`${id} · ${c.title}`) : ''; }).join('');
+    const concepts = links.concepts.filter(id=>window.CT_HOLE?.has(id)).map(id=>button('hole',id,window.CT_HOLE.title(id))).join('');
+    const problems = links.problems.map(([id,num])=>{const s=window.CT_HOMEWORKS.find(s=>s.id===id), p=s?.problems.find(p=>p.num===num);return p?button('homework',id,`${s.profLabel} · ${s.date} · Problem ${num}: ${p.title}`,num):'';}).join('');
+    return `<section class="pc-study-links" aria-label="Related study material"><h3>Flashcards</h3>${cards}<h3>Explore in Rabbit hole</h3>${concepts}${problems?`<h3>Practice problems</h3>${problems}`:''}</section>`;
+  }
   function select(id) {
     selected=id;
     const n=board().nodes.find(n=>n.id===id);
     details.hidden=false;
-    details.innerHTML=`<button class="pc-close" aria-label="Close problem details">×</button><span class="eyebrow">${esc(boardKey)} · METHOD & ASSUMPTIONS</span><h2>${esc(n.title)}</h2><div class="pc-detail-formula">$${esc(n.formula)}$</div><p>${esc(n.detail)}</p><h3>Follow a connection</h3><div class="pc-neighbours">${board().edges.filter(([a,b])=>a===id||b===id).map(([a,b,label])=>{const other=board().nodes.find(n=>n.id===(a===id?b:a));return `<button data-follow="${other.id}"><small>${a===id?'Next':'From'} · ${esc(label)}</small>${esc(other.title)} <span>→</span></button>`;}).join('')}</div><p class="pc-source"><strong>Study source</strong><br>${esc(n.source)}<br><small>Coursework synthesis; not an additional official exam question.</small></p>`;
+    details.innerHTML=`<button class="pc-close" aria-label="Close problem details">×</button><span class="eyebrow">${esc(boardKey)} · METHOD & ASSUMPTIONS</span><h2>${esc(n.title)}</h2><div class="pc-detail-formula">$${esc(n.formula)}$</div><p>${esc(n.detail)}</p><h3>Follow a connection</h3><div class="pc-neighbours">${board().edges.filter(([a,b])=>a===id||b===id).map(([a,b,label])=>{const other=board().nodes.find(n=>n.id===(a===id?b:a));return `<button data-follow="${other.id}"><small>${a===id?'Next':'From'} · ${esc(label)}</small>${esc(other.title)} <span>→</span></button>`;}).join('')}</div>${studyLinks(id)}<p class="pc-source"><strong>Study source</strong><br>${esc(n.source)}<br><small>Coursework synthesis; not an additional official exam question.</small></p>`;
     math(details);
     if (window.matchMedia("(max-width: 900px)").matches) requestAnimationFrame(() => details.scrollIntoView({block:"nearest", behavior:"smooth"}));
     cards.querySelectorAll('button').forEach(el=>el.setAttribute('aria-pressed',String(el.dataset.node===id)));
@@ -65,6 +74,7 @@
   }
   root.addEventListener('click',e=>{
     const b=e.target.closest('button'); if(!b)return;
+    if(b.dataset.studyKind){window.CT_VIEWS?.openStudy(b.dataset.studyKind,b.dataset.studyId,b.dataset.studyNum);return;}
     if(b.dataset.board)load(b.dataset.board);
     if(b.dataset.node)select(b.dataset.node);
     if(b.dataset.follow){select(b.dataset.follow);const p=points[selected];view.x=stage.clientWidth/2-(p.x+130)*view.scale;view.y=stage.clientHeight/2-(p.y+80)*view.scale;transform();cards.querySelector(`[data-node="${selected}"]`).focus({preventScroll:true});}
@@ -111,6 +121,6 @@
     else if(e.target===stage&&e.key.startsWith('Arrow')){e.preventDefault();view.x+=e.key==='ArrowRight'?-40:e.key==='ArrowLeft'?40:0;view.y+=e.key==='ArrowDown'?-40:e.key==='ArrowUp'?40:0;transform();}
   });
   new ResizeObserver(()=>{if(!root.hidden)transform();}).observe(stage);
-  window.CT_PROBLEM_CANVAS={render:()=>requestAnimationFrame(fit)};
+  window.CT_PROBLEM_CANVAS={render:()=>requestAnimationFrame(fit), restore:()=>requestAnimationFrame(transform)};
   load(boardKey);
 })();

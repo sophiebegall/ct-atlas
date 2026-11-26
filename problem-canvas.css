@@ -30,3 +30,9 @@
 .pc-footer {display:flex;justify-content:space-between;gap:10px;font-size:10px;color:#6d7f72;padding-top:10px;}
 #problem-canvas-view button:focus-visible,.pc-stage:focus-visible {outline:3px solid #d8963b;outline-offset:3px;}
 @media(max-width:900px) {#problem-canvas-view {padding:16px;}.pc-heading,.pc-toolbar {flex-wrap:wrap;}.pc-body {flex-direction:column;}.pc-stage {min-height:440px;height:60dvh;flex:auto;}.pc-details {width:100%;max-height:420px;border-left:0;border-top:1px solid #d2dcd4;}.pc-footer {flex-direction:column;}.pc-heading h1 {font-size:24px;}}
+.pc-study-links button {display:block;width:100%;text-align:left;margin:7px 0;padding:10px 12px;border:1px solid #cbd8ce;border-radius:6px;background:#f5f8f1;color:#254c3a;font:12px/1.6 system-ui;cursor:pointer;}
+.pc-study-links button:hover {background:#e9f1e4;}.pc-study-links span {float:right;}
+.study-back {position:sticky;top:0;z-index:15;padding:10px 24px;background:#f6f7f4;border-bottom:1px solid #d4ded5;}
+.study-back[hidden] {display:none;}.study-back button {background:#fff;border:1px solid #b8cdbd;border-radius:6px;padding:8px 14px;color:#254c3a;cursor:pointer;}
+.study-back button:focus-visible {outline:3px solid #d8963b;outline-offset:2px;}
+.hw-problem-card {scroll-margin-top:72px;}.hw-problem-card:focus {outline:2px solid #477a5a;outline-offset:4px;}

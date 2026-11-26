@@ -32,7 +32,14 @@
   const holeSection = $('#rabbit-hole-view');
   let activeTopView = 'hole'; // 'hole' | 'graph' | 'split' | 'exam' | 'homeworks'
 
-  function setTopView(view) {
+  const studyHistory = [];
+  const backBar = document.createElement('nav');
+  backBar.className = 'study-back'; backBar.hidden = true;
+  backBar.setAttribute('aria-label', 'Study navigation');
+  document.querySelector('.topbar').after(backBar);
+
+  function setTopView(view, preserveHistory = false) {
+    if (!preserveHistory) { studyHistory.length = 0; backBar.hidden = true; }
     activeTopView = view;
     const isAtlas = view === 'graph' || view === 'split';
     shell.hidden = !isAtlas;
@@ -66,7 +73,10 @@
     if (view === 'exam') renderExamView();
     if (view === 'homeworks') renderHomeworksView();
     if (view === 'hole') window.CT_HOLE?.render();
-    if (view === 'canvas') window.CT_PROBLEM_CANVAS?.render();
+    if (view === 'canvas') {
+      if (preserveHistory) window.CT_PROBLEM_CANVAS?.restore();
+      else window.CT_PROBLEM_CANVAS?.render();
+    }
   }
 
   $('#problem-canvas-tab')?.addEventListener('click', () => setTopView('canvas'));
@@ -368,8 +378,7 @@
     });
     $$('[data-hole]').forEach(b => b.addEventListener('click', e => {
       e.preventDefault();
-      setTopView('hole');
-      window.CT_HOLE.open(b.dataset.hole, b.dataset.holeDir);
+      openStudy('hole', b.dataset.hole);
     }));
     $$('[data-ex-goto]').forEach(b => b.addEventListener('click', () => gotoExamCard(b.dataset.exGoto)));
     $('#ex-reveal')?.addEventListener('click', () => { examRevealed = !examRevealed; renderExamView(); });
@@ -412,20 +421,68 @@
 
   examSection.addEventListener('click', e => {
     const a = e.target.closest('a.rh-link'); if (!a) return;
-    e.preventDefault(); setTopView('hole'); window.CT_HOLE?.open(a.dataset.link, 'down');
+    e.preventDefault(); openStudy('hole', a.dataset.link);
   });
 
   // Used by the rabbit hole to jump to a flashcard.
   let toastTimer;
   window.CT_VIEWS = {
     setTopView,
-    openExamCard: id => { setTopView('exam'); gotoExamCard(id); },
+    openExamCard: id => openStudy('exam', id),
+    openStudy,
     toast: msg => { const t = document.querySelector('#toast'); if (!t) return; clearTimeout(toastTimer); t.textContent = msg; t.hidden = false; toastTimer = setTimeout(() => (t.hidden = true), 4500); },
   };
 
   // ==================== HOMEWORKS VIEW (ISOLATED, LIST-ONLY) ====================
   let hwProf = 'all';   // 'all' | 'pignotti' | 'palladino'
   let hwSheet = 'all';  // 'all' | sheet.id
+
+
+  function updateBack() {
+    const previous = studyHistory.at(-1);
+    backBar.hidden = !previous;
+    backBar.innerHTML = previous ? `<button type="button">← Back to ${esc(previous.label)}</button>` : '';
+    backBar.querySelector('button')?.addEventListener('click', goBack);
+  }
+  function openStudy(kind, id, num) {
+    const sheet = kind === 'homework' && homeworks.find(s=>s.id===id);
+    if (kind === 'exam' && !examCards.some(c=>c.id===id)) return;
+    if (kind === 'hole' && !window.CT_HOLE?.has(id)) return;
+    if (kind === 'homework' && !sheet?.problems.some(p=>p.num===num)) return;
+    if (!['exam','hole','homework'].includes(kind)) return;
+    const labels = {canvas:'problem canvas',exam:'flashcards',hole:'Rabbit hole',homeworks:'homework problems'};
+    studyHistory.push({
+      view:activeTopView, label:labels[activeTopView] || 'atlas', y:window.scrollY,
+      focus:document.activeElement,
+      hole:window.CT_HOLE?.current(),
+      exam:{examProf,examProof,examStatus,examQuery,examDisplay,examOrder:[...examOrder],examIdx,examRevealed},
+      homework:{hwProf,hwSheet},
+      openDetails:[...document.querySelectorAll('#homeworks-view details, #exam-flashcards-view details')].map(d=>d.open)
+    });
+    if(kind==='exam') { examDisplay='cards'; setTopView('exam',true); gotoExamCard(id); }
+    if(kind==='hole') { setTopView('hole',true); window.CT_HOLE.open(id); }
+    if(kind==='homework') {
+      hwProf='all'; hwSheet=id; setTopView('homeworks',true);
+      const target=document.getElementById(`hw-${id}-${num}`);
+      requestAnimationFrame(()=>{target?.scrollIntoView({block:'start'});target?.focus({preventScroll:true});});
+    }
+    updateBack();
+    if(kind!=='homework')backBar.scrollIntoView({block:'start'});
+  }
+  function goBack() {
+    const previous=studyHistory.pop();if(!previous)return;
+    ({examProf,examProof,examStatus,examQuery,examDisplay,examOrder,examIdx,examRevealed}=previous.exam);
+    ({hwProf,hwSheet}=previous.homework);
+    setTopView(previous.view,true);
+    if(previous.view==='hole')window.CT_HOLE.open(previous.hole);
+    if(['exam','homeworks'].includes(previous.view))document.querySelectorAll('#homeworks-view details, #exam-flashcards-view details').forEach((d,i)=>{d.open=!!previous.openDetails[i];});
+    updateBack();
+    requestAnimationFrame(()=>{
+      if(previous.focus?.isConnected)previous.focus.focus({preventScroll:true});
+      else (previous.view==='exam'?examSection:previous.view==='homeworks'?hwSection:holeSection)?.querySelector('button')?.focus({preventScroll:true});
+      window.scrollTo({top:previous.y,behavior:'instant'});
+    });
+  }
 
   function renderHomeworksView() {
     const sheetsByProf = homeworks.filter(s => hwProf === 'all' || s.prof === hwProf);
@@ -469,7 +526,7 @@
         </header>
         <div class="hw-problem-list">
           ${sheet.problems.map(p => `
-            <article class="hw-problem-card">
+            <article class="hw-problem-card" id="hw-${esc(sheet.id)}-${esc(p.num)}" tabindex="-1">
               <div class="hw-problem-head">
                 <span class="hw-num">Problem ${esc(p.num)}</span>
                 <h4>${esc(p.title)}</h4>

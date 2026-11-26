@@ -187,6 +187,7 @@
   }, true);
 
   window.CT_HOLE = {
+    current: () => at,
     render: () => { lastDir = 'none'; render(); },
     open: (id, dir = 'side') => go(id, dir),
     has: id => H.has(id),
