@@ -2,7 +2,7 @@
 // a burrow map of what you've discovered, and links to the 18 exam flashcards.
 (() => {
   'use strict';
-  const atlas = window.RFA_DATA, hd = window.CT_HOLE_DATA;
+  const atlas = window.RFA_DATA, hd = window.CT_HOLE_DATA, PROOFS = window.CT_PROOFS || {};
   const section = document.querySelector('#rabbit-hole-view');
   if (!atlas || !hd || !section) return;
   const $ = s => section.querySelector(s), $$ = s => [...section.querySelectorAll(s)];
@@ -84,6 +84,11 @@
   const found = new Set(st.found.length ? st.found : ['root']);
   let at = st.at, lastDir = 'none', mapOpen = new Set(pathTo(at));
   const save = () => { try { localStorage.setItem(STORE, JSON.stringify({ found: [...found], at })); } catch {} };
+  // Proof progress per room: 0 = nothing, 1 = idea shown, 1 + k = first k steps shown.
+  const PSTORE = 'ct-hole-proofs-v1';
+  let proofAt = {};
+  try { proofAt = JSON.parse(localStorage.getItem(PSTORE) || '{}') || {}; } catch {}
+  const saveProofs = () => { try { localStorage.setItem(PSTORE, JSON.stringify(proofAt)); } catch {} };
   const foundIn = id => subtree(id).filter(x => found.has(x)).length;
 
   // ---------- Render ----------
@@ -92,7 +97,7 @@
     const c = H.get(cid), total = subtree(cid).length, f = foundIn(cid), isNew = !found.has(cid);
     const done = f === total;
     return `<button class="rh-door ${isNew ? 'is-new' : ''} ${done ? 'is-done' : ''}" data-go="${esc(cid)}" data-dir="down">
-      <span class="rh-door-top"><span class="rh-key">${i < 9 ? i + 1 : ''}</span>${isNew ? '<span class="rh-new">unexplored</span>' : done ? '<span class="rh-doneflag">✓ fully explored</span>' : `<span class="rh-count">${f}/${total} found</span>`}${tests.has(cid) ? '<span class="rh-cardmark" title="A flashcard tests this">🃏</span>' : ''}</span>
+      <span class="rh-door-top"><span class="rh-key">${i < 9 ? i + 1 : ''}</span>${isNew ? '<span class="rh-new">unexplored</span>' : done ? '<span class="rh-doneflag">✓ fully explored</span>' : `<span class="rh-count">${f}/${total} found</span>`}${tests.has(cid) ? '<span class="rh-cardmark" title="A flashcard tests this">🃏</span>' : ''}${PROOFS[cid] ? `<span class="rh-proofmark ${proofDone(cid) ? 'is-done' : ''}" title="${proofDone(cid) ? 'You have walked through the whole proof' : 'Has a proof to discover'}${proofOnExam(cid).length ? ' · proof asked in the exam' : ' · proof not needed for the exam'}">∴${proofOnExam(cid).length ? ' <small>exam</small>' : ''}${proofDone(cid) ? ' ✓' : ''}</span>` : ''}</span>
       <span class="rh-door-hook">${esc(c.hook)}</span>
       <span class="rh-door-title">${esc(c.title)}${total > 1 ? ` <small>· ${total - 1} deeper</small>` : ''}</span>
     </button>`;
@@ -100,6 +105,43 @@
   function part(label, html, open = false) {
     if (!html) return '';
     return `<details class="rh-part" ${open ? 'open' : ''}><summary>${label}</summary><div class="rh-part-body">${html}</div></details>`;
+  }
+  // A proof is exam-relevant iff a "with proof" flashcard tests this room (study-data.js decides, not this file).
+  const proofOnExam = id => (tests.get(id) || []).filter(c => c.proof);
+  function examTag(id) {
+    const on = proofOnExam(id), cs = tests.get(id) || [];
+    if (on.length) return `<span class="rh-exam-tag is-exam" title="${esc(on.map(c => c.id + ': ' + c.title).join(' · '))}">📝 Proof asked in the exam · ${esc(on.map(c => c.id).join(', '))}</span>`;
+    const why = cs.length ? `the exam asks only the statement (${esc(cs.map(c => c.id).join(', '))})` : 'it is not on the exam list';
+    return `<span class="rh-exam-tag" title="You can skip this proof for the exam: ${why}. It is here for understanding.">Not needed for the exam: ${why}</span>`;
+  }
+  const proofDone = id =>!!PROOFS[id] && (proofAt[id] || 0) > PROOFS[id].steps.length;
+  // The proof, revealed in layers: idea → step claims one at a time → each step's details on demand.
+  function proofBlock(id) {
+    const p = PROOFS[id]; if (!p) return '';
+    const s = proofAt[id] || 0, k = p.steps.length, shown = Math.max(0, s - 1);
+    let h = `<div class="rh-proof-head"><span class="eyebrow">WHY IS IT TRUE?</span>${examTag(id)}${s ? '<button class="quiet rh-proof-hide" data-proof="0" title="Hide the proof again">hide</button>' : ''}</div>`;
+    if (!s) return h + '<button class="rh-proof-btn" data-proof="1">💡 Discover the idea of the proof</button>';
+    h += `<div class="rh-proof-idea"><span class="rh-proof-label">The idea</span>${p.idea}</div>`;
+    if (s === 1) return h + `<button class="rh-proof-btn" data-proof="2">Still curious? Walk through the whole proof · ${k} steps →</button>`;
+    h += `<ol class="rh-proof-steps">${p.steps.slice(0, shown).map((st, i) => `<li><details><summary><span class="rh-step-claim">${st.claim}</span><span class="rh-step-why">why?</span></summary><div class="rh-step-detail">${st.detail}</div></details></li>`).join('')}</ol>`;
+    h += shown < k
+      ? `<div class="rh-proof-nav"><button class="rh-proof-btn" data-proof="${s + 1}">Next step <small>${shown + 1}/${k}</small> →</button><button class="quiet" data-proof="${k + 1}">Show all steps</button></div>`
+      : '<div class="rh-proof-nav"><span class="rh-proof-done">∎ That is the whole proof.</span><button class="quiet" data-openall>Open every “why?”</button></div>';
+    return h;
+  }
+  // Re-render only the proof box, keeping which "why?" were open.
+  function wireProof(box) {
+    box.querySelectorAll('[data-proof]').forEach(b => b.addEventListener('click', () => {
+      const open = [...box.querySelectorAll('.rh-proof-steps details')].map(d => d.open);
+      const before = open.length;
+      proofAt[at] = +b.dataset.proof; saveProofs();
+      box.innerHTML = proofBlock(at);
+      const ds = box.querySelectorAll('.rh-proof-steps details');
+      ds.forEach((d, i) => { d.open = !!open[i]; d.parentElement.classList.toggle('is-fresh', i >= before); });
+      math(box); linkify(box, [at]); wireProof(box);
+      (ds.length > before ? ds[before].parentElement : box).scrollIntoView({ block: 'nearest', behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth' });
+    }));
+    box.querySelector('[data-openall]')?.addEventListener('click', () => box.querySelectorAll('.rh-proof-steps details').forEach(d => { d.open = true; }));
   }
   function mapTree(id) {
     const n = H.get(id);
@@ -131,7 +173,7 @@
           <div class="rh-intuition">${n.intuition || ''}</div>
           ${part('Precise statement', n.precise, !n.intuition)}
           ${part('Example', n.example)}
-          ${part('Proof sketch', n.proofSketch ? n.proofSketch + '<p class="proof-note">AI-written study sketch, not a full proof.</p>' : '')}
+          ${PROOFS[at] ? `<section class="rh-proof" aria-label="Proof">${proofBlock(at)}</section>` : part('Proof sketch', n.proofSketch ? n.proofSketch + '<p class="proof-note">AI-written study sketch, not a full proof.</p>' : '')}
         </article>
 
         ${bottom ? `<div class="rh-bottom"><span class="rh-bottom-icon">◉</span><div><strong>Bottom of this hole.</strong> Nothing deeper here. ${tn.length ? 'Take a tunnel sideways, or climb back up.' : 'Climb back up.'}</div></div>`
@@ -156,10 +198,11 @@
     math(section);
     linkify($('.rh-room'), [at]);
     $$('[data-go]').forEach(b => b.addEventListener('click', () => go(b.dataset.go, b.dataset.dir)));
+    if ($('.rh-proof')) wireProof($('.rh-proof'));
     $$('[data-tog]').forEach(b => b.addEventListener('click', () => { const id = b.dataset.tog; mapOpen.has(id) ? mapOpen.delete(id) : mapOpen.add(id); lastDir = 'none'; render(); }));
     $$('[data-card]').forEach(b => b.addEventListener('click', () => window.CT_VIEWS?.openExamCard(b.dataset.card)));
     $('#rh-surprise')?.addEventListener('click', () => go(fresh[Math.floor(Math.random() * fresh.length)], 'down'));
-    $('#rh-reset')?.addEventListener('click', () => { if (confirm('Forget all discoveries and start again at the top?')) { found.clear(); found.add('root'); at = 'root'; mapOpen = new Set(['root']); save(); lastDir = 'up'; render(); } });
+    $('#rh-reset')?.addEventListener('click', () => { if (confirm('Forget all discoveries and start again at the top?')) { found.clear(); found.add('root'); proofAt = {}; saveProofs(); at = 'root'; mapOpen = new Set(['root']); save(); lastDir = 'up'; render(); } });
     lastDir = 'none';
   }
 
@@ -187,6 +230,7 @@
   }, true);
 
   window.CT_HOLE = {
+    current: () => at,
     render: () => { lastDir = 'none'; render(); },
     open: (id, dir = 'side') => go(id, dir),
     has: id => H.has(id),
