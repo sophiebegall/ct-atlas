@@ -25,3 +25,21 @@ test('fit contains moved cards inside a padded viewport', () => {
     assert.ok((p.y+160)*v.scale+v.y <= 577);
   }
 });
+
+test('upward and leftward arrows attach to the facing sides', () => {
+  const { edgeRoute } = context.window.CTCanvasGeometry;
+  assert.match(edgeRoute({ x: 20, y: 400 }, { x: 20, y: 20 }, []).path, /^M150,400 C.* 150,180$/);
+  assert.match(edgeRoute({ x: 400, y: 20 }, { x: 20, y: 20 }, []).path, /^M400,100 C.* 280,100$/);
+});
+
+test('the Palladino trajectory arrow goes around the equilibrium card', () => {
+  vm.runInNewContext(fs.readFileSync('canvas-data.js', 'utf8'), context);
+  const { edgeRoute } = context.window.CTCanvasGeometry;
+  const nodes = context.window.CT_CANVAS.palladino.nodes;
+  const from = nodes.find(node => node.id === 'trajectory');
+  const to = nodes.find(node => node.id === 'rank');
+  const equilibrium = nodes.find(node => node.id === 'equilibrium');
+  const route = edgeRoute(from, to, nodes.filter(node => node !== from && node !== to));
+  assert.match(route.path, /^M640,850 L662,850 L662,360 L640,360$/);
+  assert.ok(route.labelX > equilibrium.x + 260);
+});

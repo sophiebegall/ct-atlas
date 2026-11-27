@@ -404,6 +404,7 @@
   // Keyboard shortcuts when Exam Flashcards view is active
   document.addEventListener('keydown', e => {
     if (activeTopView !== 'exam' || examDisplay !== 'cards') return;
+    if (backBar.contains(e.target)) return;
     if (e.defaultPrevented || e.altKey || e.ctrlKey || e.metaKey || e.target.closest('input,select,textarea')) return;
     const cards = filteredExamCards();
     if (!cards.length) return;

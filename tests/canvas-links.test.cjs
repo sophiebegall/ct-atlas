@@ -13,3 +13,13 @@ test('every canvas card has working flashcard and concept targets; homework link
     for(const [sheet,num]of links.problems)assert.ok(w.CT_HOMEWORKS.find(s=>s.id===sheet)?.problems.some(p=>p.num===num),sheet+'/'+num);
   }
 });
+
+test('basic and bounded quadratic problems can reach either costate branch', () => {
+  const edges = w.CT_CANVAS.pignotti.edges;
+  for (const start of ['base', 'quadratic']) {
+    assert.ok(edges.some(([from, to]) => from === start && to === 'structure'));
+  }
+  for (const branch of ['coupled', 'decoupled']) {
+    assert.ok(edges.some(([from, to]) => from === 'structure' && to === branch));
+  }
+});
