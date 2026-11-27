@@ -91,3 +91,38 @@
 .rh-link:hover{text-decoration-color:var(--green);background:var(--lime)}
 .rh-link.is-new{text-decoration-style:dotted;text-decoration-color:#7fa35a}
 .rh-link.is-new::after{content:'✦';font-size:.65em;vertical-align:super;margin-left:1px;color:#7fa35a}
+
+/* Discoverable proofs: idea → steps → details. */
+.rh-proofmark{margin-left:auto;font:600 13px Georgia,serif;color:var(--thm)}
+.rh-cardmark+.rh-proofmark{margin-left:0}
+.rh-proofmark.is-done{color:#5d8a45}
+.rh-proof{border-top:1px solid var(--line);margin-top:6px;padding:14px 0 4px}
+.rh-proof-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}
+.rh-proof-hide{padding:0;font-size:11px}
+.rh-proof-btn{background:#f3eff8;border:1px solid #ddd2ea;color:#5b4378;border-radius:999px;padding:9px 16px;font-size:13px;font-weight:550}
+.rh-proof-btn small{font-weight:400;opacity:.75;margin-left:4px}
+.rh-proof-idea{background:#faf8fc;border-left:3px solid var(--thm);border-radius:0 12px 12px 0;padding:12px 16px 4px;margin:0 0 14px;font-size:15px;line-height:1.6;animation:rh-reveal .35s ease}
+.rh-proof-idea p{margin:0 0 10px}
+.rh-proof-label{display:block;font-size:10px;letter-spacing:1.4px;font-weight:650;text-transform:uppercase;color:var(--thm);margin-bottom:6px}
+.rh-proof-steps{margin:0 0 12px;padding-left:24px;counter-reset:none}
+.rh-proof-steps li{margin:0 0 6px;font-size:14.5px;line-height:1.55}
+.rh-proof-steps li::marker{color:var(--thm);font-weight:650}
+.rh-proof-steps li.is-fresh{animation:rh-reveal .35s ease}
+.rh-proof-steps summary{cursor:pointer;list-style:none;display:flex;gap:10px;align-items:baseline;padding:4px 0}
+.rh-proof-steps summary::-webkit-details-marker{display:none}
+.rh-step-claim{font-weight:550}
+.rh-step-why{margin-left:auto;flex:none;font-size:11px;color:var(--thm);border:1px solid #ddd2ea;border-radius:999px;padding:1px 8px}
+.rh-step-why::before{content:'▸ '}
+details[open]>summary .rh-step-why::before{content:'▾ '}
+.rh-step-detail{font-size:14px;line-height:1.6;padding:4px 0 8px 2px;color:#3b4d42;overflow-x:auto}
+.rh-step-detail p{margin:0 0 8px}
+.rh-proof-nav{display:flex;flex-wrap:wrap;gap:14px;align-items:center}
+.rh-proof-done{font:italic 15px Georgia,serif;color:#5d8a45}
+.rh-dive{font-weight:600}
+@keyframes rh-reveal{from{opacity:0;transform:translateY(-6px)}to{opacity:1;transform:none}}
+@media(prefers-reduced-motion:reduce){.rh-proof-idea,.rh-proof-steps li.is-fresh{animation:none}}
+.rh-proof-head{gap:10px}
+.rh-proof-hide{margin-left:auto}
+.rh-exam-tag{font-size:11px;color:var(--muted);background:var(--bg);border:1px solid var(--line);border-radius:999px;padding:2px 10px}
+.rh-exam-tag.is-exam{color:#7a5512;background:#fff4dc;border-color:#ecd39a;font-weight:600}
+.rh-proofmark small{font:600 9.5px Inter,sans-serif;letter-spacing:.4px;color:#7a5512}

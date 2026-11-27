@@ -30,7 +30,8 @@
   const examSection = $('#exam-flashcards-view');
   const hwSection = $('#homeworks-view');
   const holeSection = $('#rabbit-hole-view');
-  let activeTopView = 'hole'; // 'hole' | 'graph' | 'split' | 'exam' | 'homeworks'
+  const arenaSection = $('#battle-arena-view');
+  let activeTopView = 'hole';
 
   const studyHistory = [];
   const backBar = document.createElement('nav');
@@ -48,6 +49,7 @@
     if (holeSection) holeSection.hidden = view !== 'hole';
     const canvasSection = $('#problem-canvas-view');
     if (canvasSection) canvasSection.hidden = view !== 'canvas';
+    if (arenaSection) arenaSection.hidden = view !== 'arena';
 
     if (view === 'graph') {
       $('#graph-view')?.click();
@@ -57,6 +59,7 @@
 
     const map = {
       canvas: '#problem-canvas-tab',
+      arena: '#battle-arena-tab',
       hole: '#hole-view',
       graph: '#graph-only-view',
       split: '#split-view',
@@ -70,6 +73,7 @@
       btn.setAttribute('aria-pressed', String(k === view));
     });
 
+    if (view === 'arena') window.CT_BATTLE_ARENA?.render();
     if (view === 'exam') renderExamView();
     if (view === 'homeworks') renderHomeworksView();
     if (view === 'hole') window.CT_HOLE?.render();
@@ -79,6 +83,7 @@
     }
   }
 
+  $('#battle-arena-tab')?.addEventListener('click', () => setTopView('arena'));
   $('#problem-canvas-tab')?.addEventListener('click', () => setTopView('canvas'));
   $('#hole-view')?.addEventListener('click', () => setTopView('hole'));
   $('#graph-only-view')?.addEventListener('click', () => setTopView('graph'));
@@ -450,8 +455,9 @@
     if (kind === 'exam' && !examCards.some(c=>c.id===id)) return;
     if (kind === 'hole' && !window.CT_HOLE?.has(id)) return;
     if (kind === 'homework' && !sheet?.problems.some(p=>p.num===num)) return;
-    if (!['exam','hole','homework'].includes(kind)) return;
-    const labels = {canvas:'problem canvas',exam:'flashcards',hole:'Rabbit hole',homeworks:'homework problems'};
+    if (kind === 'canvas' && !window.CT_CANVAS?.[id]?.nodes.some(n => n.id === num)) return;
+    if (!['exam','hole','homework','canvas'].includes(kind)) return;
+    const labels = {arena:'Method Arena',canvas:'problem canvas',exam:'flashcards',hole:'Rabbit hole',homeworks:'homework problems'};
     studyHistory.push({
       view:activeTopView, label:labels[activeTopView] || 'atlas', y:window.scrollY,
       focus:document.activeElement,
@@ -460,6 +466,10 @@
       homework:{hwProf,hwSheet},
       openDetails:[...document.querySelectorAll('#homeworks-view details, #exam-flashcards-view details')].map(d=>d.open)
     });
+    if (kind === 'canvas') {
+      setTopView('canvas', true);
+      window.CT_PROBLEM_CANVAS?.openRoute(id, num);
+    }
     if(kind==='exam') { examDisplay='cards'; setTopView('exam',true); gotoExamCard(id); }
     if(kind==='hole') { setTopView('hole',true); window.CT_HOLE.open(id); }
     if(kind==='homework') {

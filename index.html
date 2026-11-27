@@ -8,21 +8,25 @@
   <title>CT Atlas · Part I</title>
   <link rel="icon" href="icon.svg" type="image/svg+xml">
   <link rel="stylesheet" href="vendor/katex/katex.min.css">
-  <link rel="stylesheet" href="styles.css?ct=links1">
-  <link rel="stylesheet" href="rabbit-hole.css?ct=2">
+  <link rel="stylesheet" href="styles.css?ct=arena1">
+  <link rel="stylesheet" href="rabbit-hole.css?ct=proof2">
   <script defer src="vendor/katex/katex.min.js"></script>
   <script defer src="vendor/katex/contrib/auto-render.min.js"></script>
   <script defer src="data.js?ct=28c95e5125f7"></script>
   <script defer src="study-data.js?ct=2"></script>
   <script defer src="app.js?ct=565992a47746"></script>
   <script defer src="hole-data.js?ct=2"></script>
-  <script defer src="rabbit-hole.js?ct=back1"></script>
-  <script defer src="study-views.js?ct=canvas3"></script>
-  <link rel="stylesheet" href="problem-canvas.css?ct=links1">
+  <script defer src="proof-data.js?ct=proof1"></script>
+  <script defer src="rabbit-hole.js?ct=proof2"></script>
+  <script defer src="study-views.js?ct=arena1"></script>
+  <link rel="stylesheet" href="problem-canvas.css?ct=arena1">
   <script defer src="canvas-data.js?ct=routes2"></script>
   <script defer src="canvas-links.js"></script>
   <script defer src="canvas-geometry.js?ct=routes2"></script>
-  <script defer src="problem-canvas.js?ct=links2"></script>
+  <script defer src="problem-canvas.js?ct=arena1"></script>
+  <link rel="stylesheet" href="battle-arena.css?ct=exam1">
+  <script defer src="battle-data.js?ct=exam1"></script>
+  <script defer src="battle-arena.js?ct=exam1"></script>
 </head>
 <body>
   <a class="skip" href="#workspace">Skip to study area</a>
@@ -33,6 +37,7 @@
       <button id="hole-view" class="active" aria-pressed="true" title="Explore: start broad and dive deeper and deeper">Rabbit hole</button>
       <button id="exam-cards-view" aria-pressed="false" title="Test yourself: the 18 official exam flashcards (6 with proof, 12 no proof)">Flashcards (18)</button>
       <button id="split-view" aria-pressed="false" title="The old concept graph with cards side by side">Full map</button>
+      <button id="battle-arena-tab" aria-pressed="false">Method Arena</button>
       <button id="problem-canvas-tab" aria-pressed="false">Problem canvas</button>
       <button id="graph-only-view" hidden aria-hidden="true"></button>
       <button id="homeworks-tab-view" aria-pressed="false" title="Homework problems in list view with hints and answers">Homeworks</button>
@@ -90,6 +95,7 @@
   <section id="exam-flashcards-view" class="standalone-view" aria-label="Exam flashcards (18 official questions)" hidden></section>
   <section id="homeworks-view" class="standalone-view" aria-label="Homework problems list" hidden></section>
   <section id="problem-canvas-view" aria-label="Coursework problem canvas" hidden></section>
+  <section id="battle-arena-view" aria-label="Method Arena" hidden></section>
   <div id="announcement" class="sr-only" aria-live="polite"></div>
   <div id="toast" class="toast" role="status" hidden></div>
   <dialog id="source-dialog"><div class="dialog-head"><span class="eyebrow">LECTURE REFERENCES</span><button id="close-dialog" class="icon-button" aria-label="Close references">×</button></div><div id="source-content"></div></dialog>

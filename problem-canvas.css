@@ -1,6 +1,7 @@
 #problem-canvas-view {padding:24px 32px 12px; background:#f6f7f4; color:#213e34;}
 #problem-canvas-view[hidden] {display:none;}
 .pc-heading {display:flex;align-items:center;justify-content:space-between;gap:20px;margin-bottom:20px;}
+.pc-heading-actions {display:flex;flex-wrap:wrap;gap:10px;align-items:center;}
 .pc-heading h1 {font-size:28px;letter-spacing:-1px;margin:5px 0;}
 .pc-heading p,.pc-toolbar p {margin:5px 0 0;color:#65766e;font-size:13px;}
 .pc-boards,.pc-tools {display:flex;gap:5px;align-items:center;flex-shrink:0;}
