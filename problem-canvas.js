@@ -11,7 +11,7 @@
   if (typeof saved !== 'object' || Array.isArray(saved)) saved = {};
   let boardKey = 'pignotti', points = {}, selected = null, view = {x:0,y:0,scale:1}, gesture = null;
   let fitted = true;
-  root.innerHTML = `<header class="pc-heading"><div><span class="eyebrow">PROBLEM CANVAS</span><h1>How do I solve this?</h1><p>Follow a branch. Change an assumption. Find the next step.</p></div><div class="pc-boards" role="group" aria-label="Choose coursework"><button data-board="pignotti" aria-pressed="true">Pignotti</button><button data-board="palladino" aria-pressed="false">Palladino</button></div></header>
+  root.innerHTML = `<header class="pc-heading"><div><span class="eyebrow">PROBLEM CANVAS</span><h1>How do I solve this?</h1><p>Follow a branch. Change an assumption. Find the next step.</p></div><div class="pc-heading-actions"><button type="button" class="secondary" data-action="arena">Practice in Method Arena <span aria-hidden="true">↗</span></button><div class="pc-boards" role="group" aria-label="Choose coursework"><button data-board="pignotti" aria-pressed="true">Pignotti</button><button data-board="palladino" aria-pressed="false">Palladino</button></div></div></header>
     <div class="pc-toolbar"><div><strong id="pc-title"></strong><p id="pc-subtitle"></p></div><div class="pc-tools"><button data-action="out" aria-label="Zoom canvas out">−</button><output id="pc-zoom" aria-label="Canvas zoom"></output><button data-action="in" aria-label="Zoom canvas in">+</button><button data-action="fit">Fit</button><button data-action="reset">Reset layout</button></div></div>
     <div class="pc-body"><div class="pc-stage" tabindex="0" aria-label="Problem canvas. Drag background to pan; scroll to zoom. Tab to a card and press Enter for details. Alt and arrow keys move cards."><div class="pc-world"><svg class="pc-edges" aria-hidden="true"><defs><marker id="pc-arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10z" fill="#809b91"/></marker></defs><g></g></svg><div class="pc-cards"></div></div></div><aside class="pc-details" aria-label="Selected problem details" hidden></aside></div>
     <footer class="pc-footer"><span>Drag cards to arrange · Drag background to pan · Scroll to zoom · Alt + arrows to move a focused card</span><span id="pc-save" role="status">Layouts stay in this browser.</span></footer>`;
@@ -93,6 +93,10 @@
     if(b.dataset.node)select(b.dataset.node);
     if(b.dataset.follow){fitted=false;select(b.dataset.follow);const p=points[selected];view.x=stage.clientWidth/2-(p.x+130)*view.scale;view.y=stage.clientHeight/2-(p.y+80)*view.scale;transform();cards.querySelector(`[data-node="${selected}"]`).focus({preventScroll:true});}
     if(b.classList.contains('pc-close')){const old=selected;selected=null;details.hidden=true;cards.querySelectorAll('button').forEach(c=>c.setAttribute('aria-pressed','false'));drawEdges();cards.querySelector(`[data-node="${old}"]`)?.focus({preventScroll:true});}
+    if (b.dataset.action === 'arena') {
+      window.CT_VIEWS?.setTopView('arena');
+      window.CT_BATTLE_ARENA?.openBoard(boardKey);
+    }
     if(b.dataset.action==='fit')fit();
     if(b.dataset.action==='reset'){delete saved[boardKey];load(boardKey);persist();}
     if(['in','out'].includes(b.dataset.action)){fitted=false;view=geometry.zoomAt(view,stage.clientWidth/2,stage.clientHeight/2,b.dataset.action==='in'?1.2:1/1.2);transform();}
@@ -136,6 +140,15 @@
     else if(e.target===stage&&e.key.startsWith('Arrow')){e.preventDefault();fitted=false;view.x+=e.key==='ArrowRight'?-40:e.key==='ArrowLeft'?40:0;view.y+=e.key==='ArrowDown'?-40:e.key==='ArrowUp'?40:0;transform();}
   });
   new ResizeObserver(()=>{if(!root.hidden && fitted)fit();}).observe(stage);
-  window.CT_PROBLEM_CANVAS={render:()=>requestAnimationFrame(fit), restore:()=>requestAnimationFrame(transform)};
+  window.CT_PROBLEM_CANVAS = {
+    render: () => requestAnimationFrame(fit),
+    restore: () => requestAnimationFrame(transform),
+    openRoute(key, id) {
+      if (boardKey !== key) load(key);
+      fitted = true;
+      select(id);
+      fit();
+    }
+  };
   load(boardKey);
 })();

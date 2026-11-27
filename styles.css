@@ -198,3 +198,11 @@
 .sv-link-chip b{margin-right:2px}
 .sv-link-chip small{color:var(--muted);font-size:11.5px;line-height:1.4}
 .sv-link-dir{color:var(--green);font-weight:700}
+
+/* Keep the study tabs reachable as the header wraps. */
+@media (max-width: 1000px) {
+  .topbar .layout-switch { flex-wrap: wrap; }
+}
+@media (max-width: 480px) {
+  .topbar .layout-switch button { flex: 1 1 29%; padding-inline: 6px; }
+}
